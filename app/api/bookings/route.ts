@@ -78,6 +78,30 @@ export async function POST(req: NextRequest) {
     `,
   }).catch(() => {}); // Don't fail the booking if email fails
 
+  // Send confirmation email to customer if they provided one
+  if (customer_email) {
+    await resend.emails.send({
+      from: "WC Hauling <onboarding@resend.dev>",
+      to: customer_email,
+      subject: "We received your junk removal request – WC Hauling",
+      html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#16a34a;">Request Received!</h2>
+          <p>Hi ${customer_name},</p>
+          <p>Thanks for reaching out to WC Hauling. We've received your pickup request and will confirm your booking within 2 hours via call or text.</p>
+          <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+            <tr><td style="padding:8px;background:#f9fafb;font-weight:bold;width:140px;">Date Requested</td><td style="padding:8px;">${preferred_date}</td></tr>
+            <tr><td style="padding:8px;font-weight:bold;">Time Slot</td><td style="padding:8px;">${time_slot || "Flexible"}</td></tr>
+            <tr><td style="padding:8px;background:#f9fafb;font-weight:bold;">Load Size</td><td style="padding:8px;background:#f9fafb;">${load_size}</td></tr>
+            <tr><td style="padding:8px;font-weight:bold;">Pickup Address</td><td style="padding:8px;">${service_address}</td></tr>
+          </table>
+          <p>Have questions? Call or text us at <strong>(863) 271-7896</strong>.</p>
+          <p style="color:#6b7280;font-size:13px;">No payment is due until the job is complete.<br/>WC Hauling · Winter Haven, FL · Polk County</p>
+        </div>
+      `,
+    }).catch(() => {});
+  }
+
   return NextResponse.json({ success: true, booking: data });
 }
 
