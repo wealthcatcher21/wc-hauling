@@ -274,7 +274,7 @@ export default function Home() {
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option value="">Select a date...</option>
                     {availableDates.map((d) => (
-                      <option key={d.date} value={d.date}>{formatDate(d.date)} ({d.slotsRemaining} slot{d.slotsRemaining > 1 ? "s" : ""} left)</option>
+                      <option key={d.date} value={d.date}>{formatDate(d.date)} — {d.slots.join(" or ")} ({d.slotsRemaining} slot{d.slotsRemaining > 1 ? "s" : ""} open)</option>
                     ))}
                   </select>
                 )}
