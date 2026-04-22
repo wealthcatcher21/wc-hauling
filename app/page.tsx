@@ -6,9 +6,24 @@ const PHONE = "(863) 271-7896";
 const PHONE_HREF = "tel:8632717896";
 
 const PRICING = [
-  { label: "Half Load", price: "$350", desc: "Small cleanouts, a few items, minor clear-outs", net: "~$138 to you" },
-  { label: "¾ Load", price: "$500", desc: "Medium loads, garage cleanouts, furniture hauls", net: "~$237 to you", popular: true },
-  { label: "Full Load", price: "$725", desc: "Full truck loads, estate cleanouts, large projects", net: "~$380 to you" },
+  {
+    label: "Half Load", price: "$350", popular: false,
+    desc: "Small cleanouts, a few items",
+    items: ["Couch or loveseat", "Queen mattress + box spring", "Small dresser or desk", "Patio furniture set", "5–10 medium boxes or bags"],
+    bestFor: "Single-room cleanups or a few bulky items",
+  },
+  {
+    label: "¾ Load", price: "$500", popular: true,
+    desc: "Medium loads, garage cleanouts, furniture hauls",
+    items: ["Sectional sofa or multiple large items", "6-person dining table + chairs", "Double-door refrigerator + misc items", "Half to full garage cleanout", "Mix of furniture + boxes"],
+    bestFor: "Garage cleanouts or multiple rooms",
+  },
+  {
+    label: "Full Load", price: "$725", popular: false,
+    desc: "Full truck loads, large cleanouts",
+    items: ["Full garage cleanout (packed)", "Multiple furniture sets", "Estate cleanouts", "Large household clear-outs", "Renovation or move-out junk"],
+    bestFor: "Big jobs where everything needs to go",
+  },
 ];
 
 const ITEMS = [
@@ -91,7 +106,7 @@ export default function Home() {
             Junk Removed.<br className="hidden md:block" /> Fast. Affordable. Done.
           </h1>
           <p className="text-xl text-green-100 mb-10 max-w-2xl mx-auto">
-            Same-day and next-day pickup available. No hidden fees. We load it, haul it, and dump it — you just point.
+            Schedule your pickup in minutes. No hidden fees. We load it, haul it, and dump it — you just point.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="#book" className="bg-white text-green-700 font-bold px-8 py-4 rounded-xl text-lg hover:bg-green-50 transition-colors">
@@ -110,7 +125,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 flex flex-wrap justify-center gap-8 text-sm text-gray-300 text-center">
           <span>No Hidden Fees</span>
           <span>|</span>
-          <span>Same-Day Available</span>
+          <span>Scheduled Pickups</span>
           <span>|</span>
           <span>We Do All the Heavy Lifting</span>
           <span>|</span>
@@ -139,16 +154,26 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-3">Simple, Upfront Pricing</h2>
           <p className="text-center text-gray-500 mb-12">No surprise charges. You&apos;ll know the price before we start.</p>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 items-start">
             {PRICING.map((p) => (
-              <div key={p.label} className={`relative rounded-2xl border-2 p-8 ${p.popular ? "border-green-600 shadow-xl" : "border-gray-200"}`}>
+              <div key={p.label} className={`relative rounded-2xl border-2 p-7 flex flex-col ${p.popular ? "border-green-600 shadow-xl" : "border-gray-200"}`}>
                 {p.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-bold px-4 py-1 rounded-full">Most Popular</span>
                 )}
-                <h3 className="text-xl font-bold mb-2">{p.label}</h3>
-                <p className="text-4xl font-extrabold text-green-700 mb-3">{p.price}</p>
-                <p className="text-gray-500 text-sm mb-6">{p.desc}</p>
-                <a href="#book" className={`block text-center py-3 rounded-xl font-semibold transition-colors ${p.popular ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>
+                <h3 className="text-xl font-bold mb-1">{p.label}</h3>
+                <p className="text-4xl font-extrabold text-green-700 mb-1">{p.price}</p>
+                <p className="text-gray-500 text-sm mb-4">{p.desc}</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Examples (about this much)</p>
+                <ul className="space-y-1 mb-4">
+                  {p.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-green-500 font-bold mt-0.5">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-gray-500 italic mb-5">Best for: {p.bestFor}</p>
+                <a href="#book" className={`block text-center py-3 rounded-xl font-semibold transition-colors mt-auto ${p.popular ? "bg-green-600 text-white hover:bg-green-700" : "bg-gray-100 text-gray-800 hover:bg-gray-200"}`}>
                   Book This
                 </a>
               </div>

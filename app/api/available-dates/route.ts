@@ -4,10 +4,16 @@ import { computeDayAvailability, generateDateRange, todayStr } from "@/lib/sched
 
 export async function GET() {
   const db = getServiceClient();
-  const today = todayStr();
 
-  // Fetch next 42 days of schedule data
-  const dates = generateDateRange(today, 21);
+  // Start 2 days from today — no same-day or next-day bookings
+  const startDate = (() => {
+    const d = new Date(todayStr() + "T00:00:00");
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split("T")[0];
+  })();
+
+  // Show customers only 14 days of availability
+  const dates = generateDateRange(startDate, 14);
   const { data: scheduleRows } = await db
     .from("work_schedule")
     .select("date, shift_start, shift_end")
