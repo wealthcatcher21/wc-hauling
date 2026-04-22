@@ -433,61 +433,150 @@ export default function AdminPage() {
         )}
 
         {/* ANALYTICS TAB */}
-        {tab === "analytics" && (
-          <div>
-            <h2 className="text-xl font-bold mb-6">Revenue Tracker</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {[
-                { label: "Completed Jobs", value: completedBookings.length, color: "green" },
-                { label: "Total Gross", value: `$${totalGross.toLocaleString()}`, color: "blue" },
-                { label: "Est. Net (all jobs)", value: `$${estimatedNet.toLocaleString()}`, color: "green" },
-                { label: "Jobs to $5K/mo", value: Math.max(0, Math.ceil((5000 - estimatedNet) / 237)), color: estimatedNet >= 5000 ? "green" : "yellow" },
-              ].map((s) => (
-                <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                  <p className="text-gray-500 text-sm mb-1">{s.label}</p>
-                  <p className={`text-3xl font-extrabold ${s.color === "green" ? "text-green-700" : s.color === "blue" ? "text-blue-700" : "text-yellow-600"}`}>{s.value}</p>
-                </div>
-              ))}
-            </div>
+        {tab === "analytics" && (() => {
+          // Group completed bookings by date to split shared daily costs
+          const jobsPerDay: Record<string, number> = {};
+          for (const b of completedBookings) {
+            jobsPerDay[b.preferred_date] = (jobsPerDay[b.preferred_date] ?? 0) + 1;
+          }
 
-            <h3 className="font-bold text-lg mb-3">Completed Jobs Breakdown</h3>
-            {completedBookings.length === 0 ? (
-              <p className="text-gray-400 text-sm">No completed jobs yet. Mark jobs as complete in the Bookings tab.</p>
-            ) : (
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-semibold">Date</th>
-                      <th className="px-4 py-3 text-left font-semibold">Customer</th>
-                      <th className="px-4 py-3 text-left font-semibold">Load</th>
-                      <th className="px-4 py-3 text-right font-semibold">Gross</th>
-                      <th className="px-4 py-3 text-right font-semibold">Est. Net</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {completedBookings.map((b, i) => (
-                      <tr key={b.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                        <td className="px-4 py-3">{formatDate(b.preferred_date)}</td>
-                        <td className="px-4 py-3">{b.customer_name}</td>
-                        <td className="px-4 py-3">{b.load_size.split(" – ")[0]}</td>
-                        <td className="px-4 py-3 text-right">${b.gross_revenue ?? "–"}</td>
-                        <td className="px-4 py-3 text-right text-green-700 font-semibold">~${LOAD_NET[b.load_size] ?? "?"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50 border-t border-gray-200 font-bold">
-                    <tr>
-                      <td colSpan={3} className="px-4 py-3">Total</td>
-                      <td className="px-4 py-3 text-right">${totalGross}</td>
-                      <td className="px-4 py-3 text-right text-green-700">~${estimatedNet}</td>
-                    </tr>
-                  </tfoot>
-                </table>
+          // Per-job cost breakdown
+          const jobCosts = completedBookings.map((b) => {
+            const gross = b.gross_revenue ?? 0;
+            const jobsToday = jobsPerDay[b.preferred_date] ?? 1;
+            const helper    = Math.round(gross * 0.25 * 100) / 100;
+            const cardFee   = Math.round((gross * 0.026 + 0.15) * 100) / 100;
+            const truck     = Math.round((55 / jobsToday) * 100) / 100;
+            const gas       = Math.round(((jobsToday > 1 ? 50 : 30) / jobsToday) * 100) / 100;
+            const dump      = Math.round(((jobsToday > 1 ? 50 : 25) / jobsToday) * 100) / 100;
+            const mileEst   = mileageMap[b.id];
+            const mileage   = (mileEst && mileEst !== "loading" && mileEst !== "error") ? mileEst.mileageCost : null;
+            const totalCost = helper + cardFee + truck + gas + dump + (mileage ?? 0);
+            const net       = Math.round((gross - totalCost) * 100) / 100;
+            return { ...b, helper, cardFee, truck, gas, dump, mileage, totalCost, net };
+          });
+
+          const totalCosts = {
+            helper:  jobCosts.reduce((s, j) => s + j.helper, 0),
+            cardFee: jobCosts.reduce((s, j) => s + j.cardFee, 0),
+            truck:   jobCosts.reduce((s, j) => s + j.truck, 0),
+            gas:     jobCosts.reduce((s, j) => s + j.gas, 0),
+            dump:    jobCosts.reduce((s, j) => s + j.dump, 0),
+            mileage: jobCosts.reduce((s, j) => s + (j.mileage ?? 0), 0),
+          };
+          const totalAllCosts = Object.values(totalCosts).reduce((a, b) => a + b, 0);
+          const totalNet = jobCosts.reduce((s, j) => s + j.net, 0);
+          const r = (n: number) => `$${Math.round(n * 100) / 100}`;
+
+          return (
+            <div>
+              <h2 className="text-xl font-bold mb-6">Revenue Tracker</h2>
+
+              {/* Summary cards */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {[
+                  { label: "Completed Jobs", value: completedBookings.length.toString(), color: "green" },
+                  { label: "Total Gross", value: r(totalGross), color: "blue" },
+                  { label: "Total Net", value: r(totalNet), color: "green" },
+                  { label: "Jobs to $5K/mo", value: String(Math.max(0, Math.ceil((5000 - totalNet) / 237))), color: totalNet >= 5000 ? "green" : "yellow" },
+                ].map((s) => (
+                  <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <p className="text-gray-500 text-sm mb-1">{s.label}</p>
+                    <p className={`text-3xl font-extrabold ${s.color === "green" ? "text-green-700" : s.color === "blue" ? "text-blue-700" : "text-yellow-600"}`}>{s.value}</p>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+
+              {completedBookings.length === 0 ? (
+                <p className="text-gray-400 text-sm">No completed jobs yet. Mark jobs as complete in the Bookings tab.</p>
+              ) : (
+                <>
+                  {/* Cost breakdown summary */}
+                  <h3 className="font-bold text-lg mb-3">Where the Money Goes</h3>
+                  <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-8">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                      {[
+                        { label: "Helper (25%)", value: totalCosts.helper, note: "25% of gross per job" },
+                        { label: "Truck Rental", value: totalCosts.truck, note: "$55/day split by jobs" },
+                        { label: "Gas", value: totalCosts.gas, note: "$30–$50/day split by jobs" },
+                        { label: "Dump Fees", value: totalCosts.dump, note: "$25–$50/day split by jobs" },
+                        { label: "Mileage", value: totalCosts.mileage, note: "$1.19/mi est. to dump + back" },
+                        { label: "Card Fees", value: totalCosts.cardFee, note: "2.6% + $0.15 per job" },
+                      ].map((c) => (
+                        <div key={c.label} className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{c.label}</p>
+                          <p className="text-2xl font-extrabold text-red-600">{r(c.value)}</p>
+                          <p className="text-xs text-gray-400 mt-1">{c.note}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-6 pt-4 border-t border-gray-100 text-sm font-semibold">
+                      <span>Total Gross: <span className="text-blue-700">{r(totalGross)}</span></span>
+                      <span>Total Costs: <span className="text-red-600">-{r(totalAllCosts)}</span></span>
+                      <span>Total Net: <span className="text-green-700">{r(totalNet)}</span></span>
+                      <span className="text-gray-400">Margin: {totalGross > 0 ? Math.round((totalNet / totalGross) * 100) : 0}%</span>
+                    </div>
+                  </div>
+
+                  {/* Per-job itemized table */}
+                  <h3 className="font-bold text-lg mb-3">Per-Job Itemized Costs</h3>
+                  <div className="overflow-x-auto">
+                    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm min-w-[860px]">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="px-3 py-3 text-left font-semibold">Date</th>
+                            <th className="px-3 py-3 text-left font-semibold">Customer</th>
+                            <th className="px-3 py-3 text-right font-semibold text-blue-700">Gross</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Helper</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Truck</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Gas</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Dump</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Mileage</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Card</th>
+                            <th className="px-3 py-3 text-right font-semibold text-green-700">Net</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {jobCosts.map((j, i) => (
+                            <tr key={j.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                              <td className="px-3 py-3 whitespace-nowrap">{formatDate(j.preferred_date)}</td>
+                              <td className="px-3 py-3">{j.customer_name}</td>
+                              <td className="px-3 py-3 text-right font-semibold text-blue-700">{r(j.gross_revenue ?? 0)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">-{r(j.helper)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">-{r(j.truck)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">-{r(j.gas)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">-{r(j.dump)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">
+                                {j.mileage != null ? `-${r(j.mileage)}` : <span className="text-gray-300 text-xs">est. pending</span>}
+                              </td>
+                              <td className="px-3 py-3 text-right text-red-500">-{r(j.cardFee)}</td>
+                              <td className="px-3 py-3 text-right font-bold text-green-700">{r(j.net)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot className="bg-gray-50 border-t-2 border-gray-200 font-bold">
+                          <tr>
+                            <td colSpan={2} className="px-3 py-3">Totals</td>
+                            <td className="px-3 py-3 text-right text-blue-700">{r(totalGross)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.helper)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.truck)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.gas)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.dump)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.mileage)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.cardFee)}</td>
+                            <td className="px-3 py-3 text-right text-green-700">{r(totalNet)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-3">Truck, gas, and dump costs are split evenly across jobs on the same day. Mileage is an estimate based on round trip to the dump.</p>
+                </>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
