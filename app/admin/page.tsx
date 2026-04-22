@@ -417,26 +417,44 @@ export default function AdminPage() {
                         )}
                         {b.status === "confirmed" && (() => {
                           const defaultGross = LOAD_GROSS[b.load_size] ?? 0;
+                          const eqKey = `eq-${b.id}`;
+                          const EQUIPMENT = [
+                            { label: "Utility Dolly", price: 7 },
+                            { label: "Appliance Dolly", price: 10 },
+                            { label: "Furniture Dolly", price: 7 },
+                          ];
                           return (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <div className="flex flex-col">
-                                <label className="text-xs text-gray-400 mb-1">Actual amount collected (override if different)</label>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  defaultValue={defaultGross}
-                                  id={`gross-${b.id}`}
-                                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                />
+                            <div className="w-full space-y-3 pt-1">
+                              <div className="flex flex-wrap gap-4 items-end">
+                                <div className="flex flex-col">
+                                  <label className="text-xs text-gray-400 mb-1">Amount collected (override if different)</label>
+                                  <input type="number" min={0} defaultValue={defaultGross} id={`gross-${b.id}`}
+                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-400 font-semibold mb-2">Equipment rented? (check all that apply)</p>
+                                <div className="flex flex-wrap gap-3">
+                                  {EQUIPMENT.map((eq) => (
+                                    <label key={eq.label} className="flex items-center gap-2 text-sm cursor-pointer bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-100">
+                                      <input type="checkbox" data-eq-group={eqKey} data-price={eq.price}
+                                        className="h-4 w-4 rounded text-green-600" />
+                                      <span>{eq.label} <span className="text-red-500 font-semibold">${eq.price}</span></span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
                               <button
                                 onClick={() => {
-                                  const input = document.getElementById(`gross-${b.id}`) as HTMLInputElement;
-                                  const gross = Number(input?.value ?? defaultGross) || defaultGross;
-                                  updateBooking(b.id, { status: "completed", gross_revenue: gross });
+                                  const grossInput = document.getElementById(`gross-${b.id}`) as HTMLInputElement;
+                                  const gross = Number(grossInput?.value) || defaultGross;
+                                  const boxes = document.querySelectorAll<HTMLInputElement>(`[data-eq-group="${eqKey}"]:checked`);
+                                  const eqCost = Array.from(boxes).reduce((s, el) => s + Number(el.dataset.price ?? 0), 0);
+                                  const notes = eqCost > 0 ? `eq:${eqCost}` : undefined;
+                                  updateBooking(b.id, { status: "completed", gross_revenue: gross, ...(notes ? { notes } : {}) });
                                 }}
                                 disabled={updatingBooking === b.id}
-                                className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-60 self-end">
+                                className="bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-60">
                                 Mark Complete
                               </button>
                             </div>
@@ -485,18 +503,20 @@ export default function AdminPage() {
             const dump      = Math.round(((jobsToday > 1 ? 50 : 25) / jobsToday) * 100) / 100;
             const mileEst   = mileageMap[b.id];
             const mileage   = (mileEst && mileEst !== "loading" && mileEst !== "error") ? mileEst.mileageCost : null;
-            const totalCost = helper + cardFee + truck + gas + dump + (mileage ?? 0);
+            const equipment = b.notes?.startsWith("eq:") ? Number(b.notes.slice(3)) : 0;
+            const totalCost = helper + cardFee + truck + gas + dump + (mileage ?? 0) + equipment;
             const net       = Math.round((gross - totalCost) * 100) / 100;
-            return { ...b, helper, cardFee, truck, gas, dump, mileage, totalCost, net };
+            return { ...b, helper, cardFee, truck, gas, dump, mileage, equipment, totalCost, net };
           });
 
           const totalCosts = {
-            helper:  jobCosts.reduce((s, j) => s + j.helper, 0),
-            cardFee: jobCosts.reduce((s, j) => s + j.cardFee, 0),
-            truck:   jobCosts.reduce((s, j) => s + j.truck, 0),
-            gas:     jobCosts.reduce((s, j) => s + j.gas, 0),
-            dump:    jobCosts.reduce((s, j) => s + j.dump, 0),
-            mileage: jobCosts.reduce((s, j) => s + (j.mileage ?? 0), 0),
+            helper:    jobCosts.reduce((s, j) => s + j.helper, 0),
+            cardFee:   jobCosts.reduce((s, j) => s + j.cardFee, 0),
+            truck:     jobCosts.reduce((s, j) => s + j.truck, 0),
+            gas:       jobCosts.reduce((s, j) => s + j.gas, 0),
+            dump:      jobCosts.reduce((s, j) => s + j.dump, 0),
+            mileage:   jobCosts.reduce((s, j) => s + (j.mileage ?? 0), 0),
+            equipment: jobCosts.reduce((s, j) => s + j.equipment, 0),
           };
           const totalAllCosts = Object.values(totalCosts).reduce((a, b) => a + b, 0);
           const totalNet = jobCosts.reduce((s, j) => s + j.net, 0);
@@ -536,6 +556,7 @@ export default function AdminPage() {
                         { label: "Dump Fees", value: totalCosts.dump, note: "$25–$50/day split by jobs" },
                         { label: "Mileage", value: totalCosts.mileage, note: "$1.19/mi est. to dump + back" },
                         { label: "Card Fees", value: totalCosts.cardFee, note: "2.6% + $0.15 per job" },
+                        { label: "Equipment Rental", value: totalCosts.equipment, note: "Dollies rented per job" },
                       ].map((c) => (
                         <div key={c.label} className="bg-gray-50 rounded-xl p-4">
                           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{c.label}</p>
@@ -568,6 +589,7 @@ export default function AdminPage() {
                             <th className="px-3 py-3 text-right font-semibold text-red-500">Dump</th>
                             <th className="px-3 py-3 text-right font-semibold text-red-500">Mileage</th>
                             <th className="px-3 py-3 text-right font-semibold text-red-500">Card</th>
+                            <th className="px-3 py-3 text-right font-semibold text-red-500">Equip.</th>
                             <th className="px-3 py-3 text-right font-semibold text-green-700">Net</th>
                           </tr>
                         </thead>
@@ -585,6 +607,7 @@ export default function AdminPage() {
                                 {j.mileage != null ? `-${r(j.mileage)}` : <span className="text-gray-300 text-xs">est. pending</span>}
                               </td>
                               <td className="px-3 py-3 text-right text-red-500">-{r(j.cardFee)}</td>
+                              <td className="px-3 py-3 text-right text-red-500">{j.equipment > 0 ? `-${r(j.equipment)}` : <span className="text-gray-300">—</span>}</td>
                               <td className="px-3 py-3 text-right font-bold text-green-700">{r(j.net)}</td>
                             </tr>
                           ))}
@@ -599,6 +622,7 @@ export default function AdminPage() {
                             <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.dump)}</td>
                             <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.mileage)}</td>
                             <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.cardFee)}</td>
+                            <td className="px-3 py-3 text-right text-red-500">-{r(totalCosts.equipment)}</td>
                             <td className="px-3 py-3 text-right text-green-700">{r(totalNet)}</td>
                           </tr>
                         </tfoot>
