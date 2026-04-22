@@ -480,7 +480,7 @@ export default function AdminPage() {
             const jobsToday = jobsPerDay[b.preferred_date] ?? 1;
             const helper    = Math.round(gross * 0.25 * 100) / 100;
             const cardFee   = Math.round((gross * 0.026 + 0.15) * 100) / 100;
-            const truck     = Math.round((55 / jobsToday) * 100) / 100;
+            const truck     = Math.round((55.62 / jobsToday) * 100) / 100;
             const gas       = Math.round(((jobsToday > 1 ? 50 : 30) / jobsToday) * 100) / 100;
             const dump      = Math.round(((jobsToday > 1 ? 50 : 25) / jobsToday) * 100) / 100;
             const mileEst   = mileageMap[b.id];
