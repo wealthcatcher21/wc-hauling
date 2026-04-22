@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 
-const PHONE = "(863) 000-0000"; // placeholder — update after Google Voice setup
-const PHONE_HREF = "tel:8630000000";
+const PHONE = "(863) 271-7896";
+const PHONE_HREF = "tel:8632717896";
 
 const PRICING = [
   { label: "Half Load", price: "$350", desc: "Small cleanouts, a few items, minor clear-outs", net: "~$138 to you" },

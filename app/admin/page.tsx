@@ -56,7 +56,6 @@ export default function AdminPage() {
   const [editShiftEnd, setEditShiftEnd] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [savingSchedule, setSavingSchedule] = useState(false);
-  const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0);
 
   // Bookings state
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -130,13 +129,7 @@ export default function AdminPage() {
     setUpdatingBooking(null);
   }
 
-  // Generate 21-day window based on week offset
-  const startDate = (() => {
-    const d = new Date(todayStr() + "T00:00:00");
-    d.setDate(d.getDate() + scheduleWeekOffset * 7);
-    return d.toISOString().split("T")[0];
-  })();
-  const dates = generateDateRange(startDate, 21);
+  const dates = generateDateRange(todayStr(), 21);
 
   // Analytics
   const completedBookings = bookings.filter((b) => b.status === "completed");
@@ -199,13 +192,9 @@ export default function AdminPage() {
         {tab === "schedule" && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">3-Week Schedule</h2>
-              <div className="flex gap-2">
-                <button onClick={() => setScheduleWeekOffset(Math.max(0, scheduleWeekOffset - 1))}
-                  disabled={scheduleWeekOffset === 0}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-40">← Previous</button>
-                <button onClick={() => setScheduleWeekOffset(scheduleWeekOffset + 1)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm">Next →</button>
+              <div>
+                <h2 className="text-xl font-bold">3-Week Schedule</h2>
+                <p className="text-sm text-gray-500 mt-1">Showing the next 21 days. Update when your employer releases the next week&apos;s schedule.</p>
               </div>
             </div>
 

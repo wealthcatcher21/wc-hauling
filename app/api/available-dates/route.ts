@@ -7,7 +7,7 @@ export async function GET() {
   const today = todayStr();
 
   // Fetch next 42 days of schedule data
-  const dates = generateDateRange(today, 42);
+  const dates = generateDateRange(today, 21);
   const { data: scheduleRows } = await db
     .from("work_schedule")
     .select("date, shift_start, shift_end")
