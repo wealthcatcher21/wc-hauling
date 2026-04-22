@@ -155,6 +155,14 @@ export default function AdminPage() {
     setUpdatingBooking(null);
   }
 
+  async function deleteBooking(id: string, name: string) {
+    if (!confirm(`Permanently delete booking for ${name}? This cannot be undone.`)) return;
+    setUpdatingBooking(id);
+    await fetch("/api/bookings", { method: "DELETE", headers, body: JSON.stringify({ id }) });
+    await loadBookings();
+    setUpdatingBooking(null);
+  }
+
   const dates = generateDateRange(todayStr(), 21);
 
   // Analytics
@@ -444,6 +452,11 @@ export default function AdminPage() {
                         {b.gross_revenue && (
                           <span className="text-green-700 font-bold text-sm ml-auto">Gross: ${b.gross_revenue} → Est. net: ~${LOAD_NET[b.load_size] ?? "?"}</span>
                         )}
+                        <button onClick={() => deleteBooking(b.id, b.customer_name)}
+                          disabled={updatingBooking === b.id}
+                          className="ml-auto text-xs text-gray-300 hover:text-red-500 transition-colors disabled:opacity-40 underline">
+                          Delete
+                        </button>
                       </div>
                     </div>
                   );
