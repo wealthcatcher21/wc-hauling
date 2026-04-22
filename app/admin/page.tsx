@@ -39,6 +39,12 @@ const LOAD_NET: Record<string, number> = {
   "Full Load – $725": 380,
 };
 
+const LOAD_GROSS: Record<string, number> = {
+  "Half Load – $350": 350,
+  "Three-Quarter Load – $500": 500,
+  "Full Load – $725": 725,
+};
+
 function formatDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
@@ -401,18 +407,33 @@ export default function AdminPage() {
                             Confirm Job
                           </button>
                         )}
-                        {b.status === "confirmed" && (
-                          <div className="flex items-center gap-2">
-                            <input type="number" placeholder="Actual gross $" min={0}
-                              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-green-500"
-                              onBlur={(e) => { if (e.target.value) updateBooking(b.id, { status: "completed", gross_revenue: Number(e.target.value) }); }} />
-                            <button onClick={() => updateBooking(b.id, { status: "completed" })}
-                              disabled={updatingBooking === b.id}
-                              className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-60">
-                              Mark Complete
-                            </button>
-                          </div>
-                        )}
+                        {b.status === "confirmed" && (() => {
+                          const defaultGross = LOAD_GROSS[b.load_size] ?? 0;
+                          return (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex flex-col">
+                                <label className="text-xs text-gray-400 mb-1">Actual amount collected (override if different)</label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  defaultValue={defaultGross}
+                                  id={`gross-${b.id}`}
+                                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const input = document.getElementById(`gross-${b.id}`) as HTMLInputElement;
+                                  const gross = Number(input?.value ?? defaultGross) || defaultGross;
+                                  updateBooking(b.id, { status: "completed", gross_revenue: gross });
+                                }}
+                                disabled={updatingBooking === b.id}
+                                className="bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-60 self-end">
+                                Mark Complete
+                              </button>
+                            </div>
+                          );
+                        })()}
                         {b.status !== "cancelled" && b.status !== "completed" && (
                           <button onClick={() => updateBooking(b.id, { status: "cancelled" })}
                             disabled={updatingBooking === b.id}
