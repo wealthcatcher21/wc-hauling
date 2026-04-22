@@ -53,6 +53,7 @@ export default function Home() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [materialsConfirmed, setMaterialsConfirmed] = useState(false);
 
   useEffect(() => {
     fetch("/api/available-dates")
@@ -297,7 +298,18 @@ export default function Home() {
                   placeholder="e.g. old sofa, broken AC unit, garage cleanout..." />
               </div>
 
-              <button type="submit" disabled={submitting}
+              {/* Unacceptable materials disclaimer */}
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm font-bold text-red-700 mb-2">Items we cannot accept:</p>
+                <p className="text-sm text-red-600 mb-3">Bulk liquids · Pressurized tanks · Ammunition or explosives · Biological waste · Asbestos · Radioactive waste</p>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" required checked={materialsConfirmed} onChange={(e) => setMaterialsConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                  <span className="text-sm text-gray-700">I confirm that none of my items fall into the unacceptable categories listed above.</span>
+                </label>
+              </div>
+
+              <button type="submit" disabled={submitting || !materialsConfirmed}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-bold py-4 rounded-xl text-lg transition-colors">
                 {submitting ? "Submitting..." : "Request Pickup"}
               </button>
