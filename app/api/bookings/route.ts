@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       <p><strong>Load Size:</strong> ${load_size}</p>
       <p><strong>Details:</strong> ${description || "None"}</p>
       <hr/>
-      <p>Log in to your <a href="https://wchauling.com/admin">admin panel</a> to confirm or update this booking.</p>
+      <p>Log in to your <a href="https://wchaulingpolk.com/admin">admin panel</a> to confirm or update this booking.</p>
     `,
   }).catch(() => {}); // Don't fail the booking if email fails
 
