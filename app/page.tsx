@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 
 const PHONE = "(863) 271-7896";
 const PHONE_HREF = "tel:8632717896";
@@ -245,8 +246,10 @@ export default function Home() {
 
               <div>
                 <label className="block text-sm font-semibold mb-1">Pickup Address *</label>
-                <input required value={form.service_address} onChange={(e) => setForm({ ...form, service_address: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="123 Main St, Winter Haven, FL" />
+                <AddressAutocomplete
+                  value={form.service_address}
+                  onChange={(v) => setForm({ ...form, service_address: v })}
+                />
               </div>
 
               <div>
@@ -280,12 +283,14 @@ export default function Home() {
                 )}
               </div>
 
-              {selectedDateObj && selectedDateObj.slots.length > 1 && (
+              {selectedDateObj && (
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Preferred Time Slot</label>
+                  <label className="block text-sm font-semibold mb-1">
+                    Preferred Time Slot {selectedDateObj.slots.length === 1 && <span className="text-gray-400 font-normal">(only one slot available)</span>}
+                  </label>
                   <select value={form.time_slot} onChange={(e) => setForm({ ...form, time_slot: e.target.value })}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <option value="">No preference</option>
+                    {selectedDateObj.slots.length > 1 && <option value="">No preference</option>}
                     {selectedDateObj.slots.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>

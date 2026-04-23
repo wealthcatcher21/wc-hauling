@@ -12,17 +12,17 @@ export async function GET() {
     return d.toISOString().split("T")[0];
   })();
 
-  // Show customers only 14 days of availability
   const dates = generateDateRange(startDate, 14);
+
   const { data: scheduleRows } = await db
     .from("work_schedule")
     .select("date, shift_start, shift_end")
     .in("date", dates);
 
-  // Fetch booked job counts per date
+  // Fetch booked jobs with their specific time slots
   const { data: bookingRows } = await db
     .from("bookings")
-    .select("preferred_date")
+    .select("preferred_date, time_slot")
     .in("preferred_date", dates)
     .in("status", ["pending", "confirmed"]);
 
@@ -31,20 +31,46 @@ export async function GET() {
     scheduleMap[row.date] = { shift_start: row.shift_start, shift_end: row.shift_end };
   }
 
-  const bookedCount: Record<string, number> = {};
+  // Track booked specific slots and no-preference bookings per date
+  const bookedSpecific: Record<string, string[]> = {};
+  const bookedFlexible: Record<string, number> = {};
+
   for (const row of bookingRows ?? []) {
-    bookedCount[row.preferred_date] = (bookedCount[row.preferred_date] ?? 0) + 1;
+    const date = row.preferred_date;
+    if (row.time_slot) {
+      if (!bookedSpecific[date]) bookedSpecific[date] = [];
+      bookedSpecific[date].push(row.time_slot);
+    } else {
+      bookedFlexible[date] = (bookedFlexible[date] ?? 0) + 1;
+    }
   }
 
   const available = dates
     .map((date) => {
       const s = scheduleMap[date];
       const avail = computeDayAvailability(date, s?.shift_start ?? null, s?.shift_end ?? null);
-      const booked = bookedCount[date] ?? 0;
-      const remaining = Math.max(0, avail.jobsAllowed - booked);
-      return { date, dayOfWeek: avail.dayOfWeek, jobsAllowed: avail.jobsAllowed, slotsRemaining: remaining, slots: avail.slots };
+
+      if (avail.jobsAllowed === 0) return null;
+
+      // Remove specifically booked time slots
+      let remainingSlots = avail.slots.filter(
+        (slot) => !(bookedSpecific[date] ?? []).includes(slot)
+      );
+
+      // Remove slots for flexible/no-preference bookings (consume from front)
+      const flexCount = bookedFlexible[date] ?? 0;
+      remainingSlots = remainingSlots.slice(flexCount);
+
+      if (remainingSlots.length === 0) return null;
+
+      return {
+        date,
+        dayOfWeek: avail.dayOfWeek,
+        slotsRemaining: remainingSlots.length,
+        slots: remainingSlots,
+      };
     })
-    .filter((d) => d.slotsRemaining > 0);
+    .filter(Boolean);
 
   return NextResponse.json(available);
 }
