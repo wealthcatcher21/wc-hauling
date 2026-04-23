@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   // Send email notification to owner
   await resend.emails.send({
-    from: "WC Hauling <onboarding@resend.dev>",
+    from: "WC Hauling Polk <onboarding@resend.dev>",
     to: OWNER_EMAIL,
     subject: `New Booking Request – ${preferred_date}`,
     html: `
@@ -92,14 +92,14 @@ export async function POST(req: NextRequest) {
   // Send confirmation email to customer via Gmail if they provided one
   if (customer_email) {
     await getMailer().sendMail({
-      from: `"WC Hauling" <${process.env.GMAIL_USER}>`,
+      from: `"WC Hauling Polk" <${process.env.GMAIL_USER}>`,
       to: customer_email,
-      subject: "We received your junk removal request – WC Hauling",
+      subject: "We received your junk removal request – WC Hauling Polk",
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
           <h2 style="color:#16a34a;">Request Received!</h2>
           <p>Hi ${customer_name},</p>
-          <p>Thanks for reaching out to WC Hauling. We've received your pickup request and will confirm your booking within 2 hours via call or text.</p>
+          <p>Thanks for reaching out to WC Hauling Polk. We've received your pickup request and will confirm your booking within 2 hours via call or text.</p>
           <table style="width:100%;border-collapse:collapse;margin:20px 0;">
             <tr><td style="padding:8px;background:#f9fafb;font-weight:bold;width:140px;">Date Requested</td><td style="padding:8px;">${preferred_date}</td></tr>
             <tr><td style="padding:8px;font-weight:bold;">Time Slot</td><td style="padding:8px;">${time_slot || "Flexible"}</td></tr>
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
             <tr><td style="padding:8px;font-weight:bold;">Pickup Address</td><td style="padding:8px;">${service_address}</td></tr>
           </table>
           <p>Have questions? Call or text us at <strong>(863) 271-7896</strong>.</p>
-          <p style="color:#6b7280;font-size:13px;">No payment is due until the job is complete.<br/>WC Hauling · Winter Haven, FL · Polk County</p>
+          <p style="color:#6b7280;font-size:13px;">No payment is due until the job is complete.<br/>WC Hauling Polk · Winter Haven, FL · Polk County</p>
         </div>
       `,
     }).catch((err) => console.error("Customer email error:", err));

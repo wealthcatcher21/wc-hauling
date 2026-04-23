@@ -176,7 +176,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-2">WC Hauling Admin</h1>
+          <h1 className="text-2xl font-bold text-center mb-2">WC Hauling Polk Admin</h1>
           <p className="text-gray-500 text-center text-sm mb-8">Enter your admin password to continue</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <input type="password" required value={token} onChange={(e) => setToken(e.target.value)}
@@ -198,7 +198,7 @@ export default function AdminPage() {
       <div className="bg-gray-900 text-white px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <span className="font-bold text-lg">WC Hauling Admin</span>
+            <span className="font-bold text-lg">WC Hauling Polk Admin</span>
             <span className="text-green-400 text-sm ml-3">● Live</span>
           </div>
           <div className="flex gap-2 text-sm">
