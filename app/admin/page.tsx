@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { computeDayAvailability, generateDateRange, todayStr } from "@/lib/schedule-logic";
 
 interface ScheduleRow {
@@ -68,6 +68,9 @@ export default function AdminPage() {
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [updatingBooking, setUpdatingBooking] = useState<string | null>(null);
   const [mileageMap, setMileageMap] = useState<Record<string, { estimatedMiles: number; mileageCost: number } | "error" | "loading">>({});
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [newBookingAlert, setNewBookingAlert] = useState(false);
+  const prevPendingCount = useRef<number | null>(null);
 
   const headers = { "Content-Type": "application/json", "x-admin-token": token };
 
@@ -81,37 +84,48 @@ export default function AdminPage() {
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadBookings = useCallback(async () => {
-    setLoadingBookings(true);
+  const loadBookings = useCallback(async (silent = false) => {
+    if (!silent) setLoadingBookings(true);
     const res = await fetch("/api/bookings", { headers });
     const data = await res.json();
     if (Array.isArray(data)) {
+      const newPending = data.filter((b: Booking) => b.status === "pending").length;
+      if (prevPendingCount.current !== null && newPending > prevPendingCount.current) {
+        setNewBookingAlert(true);
+      }
+      prevPendingCount.current = newPending;
       setBookings(data);
-      // Auto-fetch mileage estimates for all non-cancelled bookings
+      setLastUpdated(new Date());
+      // Auto-fetch mileage estimates for new non-cancelled bookings
       for (const b of data) {
         if (b.status !== "cancelled" && b.service_address) {
-          setMileageMap((prev) => ({ ...prev, [b.id]: "loading" }));
-          fetch("/api/estimate-mileage", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ address: b.service_address }),
-          })
-            .then((r) => r.json())
-            .then((m) => {
-              if (m.estimatedMiles) setMileageMap((prev) => ({ ...prev, [b.id]: { estimatedMiles: m.estimatedMiles, mileageCost: m.mileageCost } }));
-              else setMileageMap((prev) => ({ ...prev, [b.id]: "error" }));
+          setMileageMap((prev) => {
+            if (prev[b.id] && prev[b.id] !== "error") return prev;
+            fetch("/api/estimate-mileage", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ address: b.service_address }),
             })
-            .catch(() => setMileageMap((prev) => ({ ...prev, [b.id]: "error" })));
+              .then((r) => r.json())
+              .then((m) => {
+                if (m.estimatedMiles) setMileageMap((p) => ({ ...p, [b.id]: { estimatedMiles: m.estimatedMiles, mileageCost: m.mileageCost } }));
+                else setMileageMap((p) => ({ ...p, [b.id]: "error" }));
+              })
+              .catch(() => setMileageMap((p) => ({ ...p, [b.id]: "error" })));
+            return { ...prev, [b.id]: "loading" };
+          });
         }
       }
     }
-    setLoadingBookings(false);
+    if (!silent) setLoadingBookings(false);
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!authed) return;
     loadSchedule();
     loadBookings();
+    const interval = setInterval(() => loadBookings(true), 30000);
+    return () => clearInterval(interval);
   }, [authed, loadSchedule, loadBookings]);
 
   async function handleLogin(e: React.FormEvent) {
@@ -200,6 +214,9 @@ export default function AdminPage() {
           <div>
             <span className="font-bold text-lg">WC Hauling Polk Admin</span>
             <span className="text-green-400 text-sm ml-3">● Live</span>
+            {lastUpdated && (
+              <span className="text-gray-400 text-xs ml-3">Updated {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+            )}
           </div>
           <div className="flex gap-2 text-sm">
             <span className="bg-yellow-500 text-black px-3 py-1 rounded-full font-semibold">{pendingCount} Pending</span>
@@ -221,6 +238,16 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+
+        {newBookingAlert && (
+          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl px-5 py-4 mb-6 flex items-center justify-between">
+            <span className="text-yellow-800 font-semibold">🔔 New booking request received!</span>
+            <button onClick={() => { setNewBookingAlert(false); setTab("bookings"); }}
+              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold text-sm px-4 py-2 rounded-lg transition-colors">
+              View Bookings
+            </button>
+          </div>
+        )}
 
         {/* SCHEDULE TAB */}
         {tab === "schedule" && (
