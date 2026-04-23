@@ -165,11 +165,12 @@ export default function Home() {
                 <h3 className="text-xl font-bold mb-1">{p.label}</h3>
                 <p className="text-4xl font-extrabold text-green-700 mb-1">{p.price}</p>
                 <p className="text-gray-500 text-sm mb-4">{p.desc}</p>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Examples (about this much)</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">What this load size looks like</p>
+                <p className="text-xs text-gray-400 italic mb-3">These are examples only — not a list of included items</p>
                 <ul className="space-y-1 mb-4">
                   {p.items.map((item) => (
                     <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-green-500 font-bold mt-0.5">✓</span>
+                      <span className="text-gray-400 mt-0.5">—</span>
                       {item}
                     </li>
                   ))}
