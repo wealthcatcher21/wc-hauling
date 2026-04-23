@@ -76,7 +76,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSubmitResult({ success: true, message: "Request received! We'll confirm your booking within 2 hours via call or text." });
+        setSubmitResult({ success: true, message: "Request received! We'll confirm your booking within 2 hours via call or text. If you provided your email, check your spam folder if you don't see a confirmation shortly." });
         setForm({ customer_name: "", customer_phone: "", customer_email: "", service_address: "", load_size: "", preferred_date: "", time_slot: "", description: "" });
       } else {
         setSubmitResult({ success: false, message: data.error || "Something went wrong. Please call us directly." });
