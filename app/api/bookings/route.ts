@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   // Send confirmation email to customer if they provided one
   if (customer_email) {
     await resend.emails.send({
-      from: "WC Hauling <onboarding@resend.dev>",
+      from: "WC Hauling <bookings@wchaulingpolk.com>",
       to: customer_email,
       subject: "We received your junk removal request – WC Hauling",
       html: `
