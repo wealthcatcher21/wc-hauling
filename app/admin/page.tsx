@@ -353,7 +353,12 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {bookings.map((b) => {
+                {[...bookings].sort((a, b) => {
+                  const order: Record<string, number> = { confirmed: 0, pending: 1, completed: 2, cancelled: 3 };
+                  const statusDiff = (order[a.status] ?? 9) - (order[b.status] ?? 9);
+                  if (statusDiff !== 0) return statusDiff;
+                  return a.preferred_date.localeCompare(b.preferred_date);
+                }).map((b) => {
                   const isSaturday = new Date(b.preferred_date + "T00:00:00").getDay() === 6;
                   const mileage = mileageMap[b.id];
                   return (
