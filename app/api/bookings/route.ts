@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   // Send confirmation email to customer if they provided one
   if (customer_email) {
     await resend.emails.send({
-      from: "WC Hauling <bookings@wchaulingpolk.com>",
+      from: "WC Hauling <onboarding@resend.dev>",
       to: customer_email,
       subject: "We received your junk removal request – WC Hauling",
       html: `
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
           <p style="color:#6b7280;font-size:13px;">No payment is due until the job is complete.<br/>WC Hauling · Winter Haven, FL · Polk County</p>
         </div>
       `,
-    }).catch(() => {});
+    }).catch((err) => console.error("Customer email error:", err));
   }
 
   return NextResponse.json({ success: true, booking: data });
