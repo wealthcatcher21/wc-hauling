@@ -344,6 +344,23 @@ export default function AdminPage() {
             </div>
 
             <h2 className="text-xl font-bold mb-4">All Booking Requests</h2>
+            {(() => {
+              const slotCounts: Record<string, number> = {};
+              for (const b of bookings) {
+                if (b.status === "pending" || b.status === "confirmed") {
+                  const key = `${b.preferred_date}|${b.time_slot ?? "no-pref"}`;
+                  slotCounts[key] = (slotCounts[key] ?? 0) + 1;
+                }
+              }
+              const overlapKeys = new Set(Object.entries(slotCounts).filter(([, v]) => v > 1).map(([k]) => k));
+              if (overlapKeys.size > 0) {
+                return (
+                  <div className="bg-red-50 border-2 border-red-400 rounded-xl px-5 py-4 mb-5 text-red-800 font-semibold text-sm">
+                    ⚠️ Scheduling conflict detected — two or more active bookings share the same date and time slot. Review the flagged jobs below before confirming.
+                  </div>
+                );
+              }
+            })()}
             {loadingBookings ? (
               <p className="text-gray-500">Loading...</p>
             ) : bookings.length === 0 ? (
@@ -353,16 +370,31 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {[...bookings].sort((a, b) => {
-                  const order: Record<string, number> = { confirmed: 0, pending: 1, completed: 2, cancelled: 3 };
-                  const statusDiff = (order[a.status] ?? 9) - (order[b.status] ?? 9);
-                  if (statusDiff !== 0) return statusDiff;
-                  return a.preferred_date.localeCompare(b.preferred_date);
-                }).map((b) => {
+                {(() => {
+                  const slotCounts2: Record<string, number> = {};
+                  for (const bk of bookings) {
+                    if (bk.status === "pending" || bk.status === "confirmed") {
+                      const k = `${bk.preferred_date}|${bk.time_slot ?? "no-pref"}`;
+                      slotCounts2[k] = (slotCounts2[k] ?? 0) + 1;
+                    }
+                  }
+                  const overlapSet = new Set(Object.entries(slotCounts2).filter(([, v]) => v > 1).map(([k]) => k));
+                  return [...bookings].sort((a, b) => {
+                    const order: Record<string, number> = { confirmed: 0, pending: 1, completed: 2, cancelled: 3 };
+                    const statusDiff = (order[a.status] ?? 9) - (order[b.status] ?? 9);
+                    if (statusDiff !== 0) return statusDiff;
+                    return a.preferred_date.localeCompare(b.preferred_date);
+                  }).map((b) => {
+                  const isOverlap = (b.status === "pending" || b.status === "confirmed") && overlapSet.has(`${b.preferred_date}|${b.time_slot ?? "no-pref"}`);
                   const isSaturday = new Date(b.preferred_date + "T00:00:00").getDay() === 6;
                   const mileage = mileageMap[b.id];
                   return (
-                    <div key={b.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <div key={b.id} className={`bg-white rounded-2xl p-6 shadow-sm ${isOverlap ? "border-2 border-red-400" : "border border-gray-200"}`}>
+                      {isOverlap && (
+                        <div className="bg-red-50 border border-red-300 rounded-xl px-4 py-2 mb-4 text-sm text-red-800 font-semibold">
+                          ⚠️ Conflict — another active booking is on this same date and time. Do not confirm both.
+                        </div>
+                      )}
                       {/* Saturday dump warning */}
                       {isSaturday && b.status !== "cancelled" && (
                         <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 mb-4 text-sm text-orange-800 font-semibold">
@@ -483,7 +515,8 @@ export default function AdminPage() {
                       </div>
                     </div>
                   );
-                })}
+                  });
+                })()}
               </div>
             )}
           </div>

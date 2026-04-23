@@ -53,22 +53,29 @@ export default function Home() {
     service_address: "", load_size: "", preferred_date: "", time_slot: "", description: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [materialsConfirmed, setMaterialsConfirmed] = useState(false);
 
-  useEffect(() => {
+  function refreshDates() {
     fetch("/api/available-dates")
       .then((r) => r.json())
-      .then((data) => { setAvailableDates(data); setLoadingDates(false); })
+      .then((data) => { if (Array.isArray(data)) setAvailableDates(data); setLoadingDates(false); })
       .catch(() => setLoadingDates(false));
-  }, []);
+  }
+
+  useEffect(() => { refreshDates(); }, []);
 
   const selectedDateObj = availableDates.find((d) => d.date === form.preferred_date);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.service_address.trim()) {
+      setFormError("Please enter a pickup address to continue.");
+      return;
+    }
     setSubmitting(true);
-    setSubmitResult(null);
+    setFormError(null);
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -77,13 +84,15 @@ export default function Home() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSubmitResult({ success: true, message: "Request received! We'll confirm your booking within 2 hours via call or text. If you provided your email, check your spam folder if you don't see a confirmation shortly." });
+        setSuccessMessage("Request received! We'll confirm your booking within 2 hours via call or text. If you provided your email, check your spam folder if you don't see a confirmation shortly.");
         setForm({ customer_name: "", customer_phone: "", customer_email: "", service_address: "", load_size: "", preferred_date: "", time_slot: "", description: "" });
+        setMaterialsConfirmed(false);
+        refreshDates();
       } else {
-        setSubmitResult({ success: false, message: data.error || "Something went wrong. Please call us directly." });
+        setFormError(data.error || "Something went wrong. Please try again.");
       }
     } catch {
-      setSubmitResult({ success: false, message: "Network error. Please call us directly." });
+      setFormError("Network error. Please check your connection and try again.");
     }
     setSubmitting(false);
   }
@@ -212,19 +221,13 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-3">Request a Pickup</h2>
           <p className="text-center text-gray-500 mb-10">Fill out the form below. We&apos;ll confirm via call or text within 2 hours.</p>
 
-          {submitResult ? (
-            <div className={`rounded-2xl p-8 text-center ${submitResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-              <p className={`text-lg font-semibold ${submitResult.success ? "text-green-700" : "text-red-700"}`}>{submitResult.message}</p>
-              {!submitResult.success && (
-                <a href={PHONE_HREF} className="mt-4 inline-block bg-green-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-green-700 transition-colors">
-                  Call {PHONE}
-                </a>
-              )}
-              {submitResult.success && (
-                <button onClick={() => setSubmitResult(null)} className="mt-4 text-green-600 underline text-sm">Submit another request</button>
-              )}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center mb-8">
+              <p className="text-lg font-semibold text-green-700">{successMessage}</p>
+              <button onClick={() => setSuccessMessage(null)} className="mt-4 text-green-600 underline text-sm">Submit another request</button>
             </div>
-          ) : (
+          )}
+          {!successMessage && (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
@@ -314,6 +317,10 @@ export default function Home() {
                   <span className="text-sm text-gray-700">I confirm that none of my items fall into the unacceptable categories listed above.</span>
                 </label>
               </div>
+
+              {formError && (
+                <p className="text-red-600 text-sm font-semibold text-center bg-red-50 border border-red-200 rounded-xl px-4 py-3">{formError}</p>
+              )}
 
               <button type="submit" disabled={submitting || !materialsConfirmed}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-bold py-4 rounded-xl text-lg transition-colors">
