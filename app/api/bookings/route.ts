@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabase";
 import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const OWNER_EMAIL = "tmonecla93@gmail.com";
+
+function getMailer() {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+}
 
 function isAdminAuthorized(req: NextRequest): boolean {
   const token = req.headers.get("x-admin-token");
@@ -78,10 +89,10 @@ export async function POST(req: NextRequest) {
     `,
   }).catch(() => {}); // Don't fail the booking if email fails
 
-  // Send confirmation email to customer if they provided one
+  // Send confirmation email to customer via Gmail if they provided one
   if (customer_email) {
-    await resend.emails.send({
-      from: "WC Hauling <bookings@wchaulingpolk.com>",
+    await getMailer().sendMail({
+      from: `"WC Hauling" <${process.env.GMAIL_USER}>`,
       to: customer_email,
       subject: "We received your junk removal request – WC Hauling",
       html: `
