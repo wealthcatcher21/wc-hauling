@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   // Send email notification to owner
   await resend.emails.send({
-    from: "WC Hauling <bookings@wchaulingpolk.com>",
+    from: "WC Hauling <onboarding@resend.dev>",
     to: OWNER_EMAIL,
     subject: `New Booking Request – ${preferred_date}`,
     html: `
