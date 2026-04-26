@@ -102,7 +102,7 @@ export default function Home() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
-          <img src="/logo.png" alt="WC Hauling Polk" className="h-16 w-auto" />
+          <img src="/logo.png" alt="WC Hauling Polk" className="h-24 w-auto" />
           <a href={PHONE_HREF} className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
             Call {PHONE}
           </a>
@@ -110,7 +110,7 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-24 bg-gradient-to-br from-green-700 to-green-900 text-white">
+      <section className="pt-32 bg-gradient-to-br from-green-700 to-green-900 text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 text-center">
           <p className="text-green-300 font-semibold text-sm uppercase tracking-widest mb-3">Winter Haven & Polk County, FL</p>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
