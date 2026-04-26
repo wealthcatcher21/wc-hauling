@@ -101,8 +101,8 @@ export default function Home() {
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <span className="text-xl font-bold text-green-700">WC Hauling Polk</span>
+        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
+          <img src="/logo.png" alt="WC Hauling Polk" className="h-12 w-auto" />
           <a href={PHONE_HREF} className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
             Call {PHONE}
           </a>
@@ -347,7 +347,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-black text-gray-400 py-8 text-center text-sm">
-        <p className="font-semibold text-white mb-1">WC Hauling Polk</p>
+        <img src="/logo.png" alt="WC Hauling Polk" className="h-16 w-auto mx-auto mb-3 opacity-90" />
         <p>Winter Haven, FL | Polk County</p>
         <p className="mt-2"><a href={PHONE_HREF} className="text-green-400 hover:underline">{PHONE}</a></p>
         <p className="mt-4 text-xs text-gray-600">A Wealth Catchers LLC company · All rights reserved</p>

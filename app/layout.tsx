@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     title: "WC Hauling Polk | Junk Removal – Winter Haven, FL",
     description: "Fast, affordable junk removal in Winter Haven and Polk County.",
     type: "website",
+    images: [{ url: "/logo.png", width: 500, height: 500, alt: "WC Hauling Polk" }],
   },
 };
 
