@@ -422,6 +422,12 @@ export default function AdminPage() {
                           ⚠️ Conflict — another active booking is on this same date and time. Do not confirm both.
                         </div>
                       )}
+                      {/* Not Sure load size warning */}
+                      {b.load_size === "Not Sure" && b.status !== "cancelled" && b.status !== "completed" && (
+                        <div className="bg-orange-50 border border-orange-300 rounded-xl px-4 py-2 mb-4 text-sm text-orange-800 font-semibold">
+                          📞 Load size not confirmed — call customer to determine price before confirming this booking.
+                        </div>
+                      )}
                       {/* Saturday dump warning */}
                       {isSaturday && b.status !== "cancelled" && (
                         <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-2 mb-4 text-sm text-orange-800 font-semibold">
