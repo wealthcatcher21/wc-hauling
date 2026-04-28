@@ -50,7 +50,7 @@ export default function Home() {
   const [loadingDates, setLoadingDates] = useState(true);
   const [form, setForm] = useState({
     customer_name: "", customer_phone: "", customer_email: "",
-    service_address: "", load_size: "", preferred_date: "", time_slot: "", description: "",
+    service_address: "", load_size: "", preferred_date: "", time_slot: "", junk_location: "", description: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -85,7 +85,7 @@ export default function Home() {
       const data = await res.json();
       if (res.ok) {
         setSuccessMessage("Request received! We'll confirm your booking within 2 hours via call or text. If you provided your email, check your spam folder if you don't see a confirmation shortly.");
-        setForm({ customer_name: "", customer_phone: "", customer_email: "", service_address: "", load_size: "", preferred_date: "", time_slot: "", description: "" });
+        setForm({ customer_name: "", customer_phone: "", customer_email: "", service_address: "", load_size: "", preferred_date: "", time_slot: "", junk_location: "", description: "" });
         setMaterialsConfirmed(false);
         refreshDates();
       } else {
@@ -299,6 +299,23 @@ export default function Home() {
                   </select>
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Where is the junk located? (optional)</label>
+                <select value={form.junk_location} onChange={(e) => setForm({ ...form, junk_location: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
+                  <option value="">Select a location...</option>
+                  <option value="Curbside / Driveway">Curbside / Driveway</option>
+                  <option value="Front Yard">Front Yard</option>
+                  <option value="Backyard">Backyard</option>
+                  <option value="Garage">Garage</option>
+                  <option value="Inside – Ground Floor">Inside – Ground Floor</option>
+                  <option value="Inside – Upper Floor">Inside – Upper Floor</option>
+                  <option value="Shed / Storage Unit">Shed / Storage Unit</option>
+                  <option value="Multiple Locations">Multiple Locations</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1">What needs to go? (optional)</label>

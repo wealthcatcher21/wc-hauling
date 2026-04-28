@@ -23,6 +23,7 @@ interface Booking {
   status: string;
   gross_revenue: number | null;
   notes: string | null;
+  junk_location: string | null;
   created_at: string;
 }
 
@@ -450,6 +451,7 @@ export default function AdminPage() {
                         {b.customer_email && <p><span className="font-semibold">Email:</span> {b.customer_email}</p>}
                         <p><span className="font-semibold">Address:</span> {b.service_address}</p>
                         <p><span className="font-semibold">Load:</span> {b.load_size}</p>
+                        {b.junk_location && <p><span className="font-semibold">Location:</span> {b.junk_location}</p>}
                         {b.description && <p className="sm:col-span-2"><span className="font-semibold">Details:</span> {b.description}</p>}
                       </div>
 

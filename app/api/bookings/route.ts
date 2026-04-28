@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { customer_name, customer_phone, customer_email, service_address, load_size, preferred_date, time_slot, description } = body;
+  const { customer_name, customer_phone, customer_email, service_address, load_size, preferred_date, time_slot, description, junk_location } = body;
 
   if (!customer_name || !customer_phone || !service_address || !load_size || !preferred_date) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await db
     .from("bookings")
-    .insert({ customer_name, customer_phone, customer_email: customer_email || null, service_address, load_size, preferred_date, time_slot: time_slot || null, description: description || null, status: "pending" })
+    .insert({ customer_name, customer_phone, customer_email: customer_email || null, service_address, load_size, preferred_date, time_slot: time_slot || null, description: description || null, junk_location: junk_location || null, status: "pending" })
     .select()
     .single();
 
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       <p><strong>Date:</strong> ${preferred_date}</p>
       <p><strong>Time Slot:</strong> ${time_slot || "Flexible"}</p>
       <p><strong>Load Size:</strong> ${load_size}</p>
+      <p><strong>Junk Location:</strong> ${junk_location || "Not specified"}</p>
       <p><strong>Details:</strong> ${description || "None"}</p>
       <hr/>
       <p>Log in to your <a href="https://wchaulingpolk.com/admin">admin panel</a> to confirm or update this booking.</p>
