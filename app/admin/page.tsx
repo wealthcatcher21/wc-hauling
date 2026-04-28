@@ -532,11 +532,25 @@ export default function AdminPage() {
                             </div>
                           );
                         })()}
+                        {b.status === "confirmed" && (
+                          <button onClick={() => updateBooking(b.id, { status: "pending" })}
+                            disabled={updatingBooking === b.id}
+                            className="border border-gray-300 text-gray-600 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60">
+                            ← Back to Pending
+                          </button>
+                        )}
                         {b.status !== "cancelled" && b.status !== "completed" && (
-                          <button onClick={() => updateBooking(b.id, { status: "cancelled" })}
+                          <button onClick={() => { if (confirm(`Cancel booking for ${b.customer_name}? This marks the job as cancelled.`)) updateBooking(b.id, { status: "cancelled" }); }}
                             disabled={updatingBooking === b.id}
                             className="border border-red-300 text-red-600 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-60">
-                            Cancel
+                            Cancel Booking
+                          </button>
+                        )}
+                        {b.status === "cancelled" && (
+                          <button onClick={() => updateBooking(b.id, { status: "pending" })}
+                            disabled={updatingBooking === b.id}
+                            className="border border-gray-300 text-gray-600 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60">
+                            Restore to Pending
                           </button>
                         )}
                         {b.gross_revenue && (
