@@ -34,15 +34,15 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const LOAD_NET: Record<string, number> = {
-  "Half Load – $350": 138,
-  "Three-Quarter Load – $500": 237,
-  "Full Load – $725": 380,
+  "Half Load – $400": 179,
+  "Three-Quarter Load – $550": 287,
+  "Full Load – $800": 468,
 };
 
 const LOAD_GROSS: Record<string, number> = {
-  "Half Load – $350": 350,
-  "Three-Quarter Load – $500": 500,
-  "Full Load – $725": 725,
+  "Half Load – $400": 400,
+  "Three-Quarter Load – $550": 550,
+  "Full Load – $800": 800,
 };
 
 function formatDate(d: string) {
@@ -603,7 +603,7 @@ export default function AdminPage() {
                   { label: "Completed Jobs", value: completedBookings.length.toString(), color: "green" },
                   { label: "Total Gross", value: r(totalGross), color: "blue" },
                   { label: "Total Net", value: r(totalNet), color: "green" },
-                  { label: "Jobs to $5K/mo", value: String(Math.max(0, Math.ceil((5000 - totalNet) / 237))), color: totalNet >= 5000 ? "green" : "yellow" },
+                  { label: "Jobs to $5K/mo", value: String(Math.max(0, Math.ceil((5000 - totalNet) / 287))), color: totalNet >= 5000 ? "green" : "yellow" },
                 ].map((s) => (
                   <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <p className="text-gray-500 text-sm mb-1">{s.label}</p>

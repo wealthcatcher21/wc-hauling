@@ -8,19 +8,19 @@ const PHONE_HREF = "tel:8632717896";
 
 const PRICING = [
   {
-    label: "Half Load", price: "$350", popular: false,
+    label: "Half Load", price: "$400", popular: false,
     desc: "Small cleanouts, a few items",
     items: ["Couch or loveseat", "Queen mattress + box spring", "Small dresser or desk", "Patio furniture set", "5–10 medium boxes or bags"],
     bestFor: "Single-room cleanups or a few bulky items",
   },
   {
-    label: "¾ Load", price: "$500", popular: true,
+    label: "¾ Load", price: "$550", popular: true,
     desc: "Medium loads, garage cleanouts, furniture hauls",
     items: ["Sectional sofa or multiple large items", "6-person dining table + chairs", "Double-door refrigerator + misc items", "Half to full garage cleanout", "Mix of furniture + boxes"],
     bestFor: "Garage cleanouts or multiple rooms",
   },
   {
-    label: "Full Load", price: "$725", popular: false,
+    label: "Full Load", price: "$800", popular: false,
     desc: "Full truck loads, large cleanouts",
     items: ["Full garage cleanout (packed)", "Multiple furniture sets", "Estate cleanouts", "Large household clear-outs", "Renovation or move-out junk"],
     bestFor: "Big jobs where everything needs to go",
@@ -261,9 +261,9 @@ export default function Home() {
                 <select required value={form.load_size} onChange={(e) => setForm({ ...form, load_size: e.target.value })}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500">
                   <option value="">Select a size...</option>
-                  <option value="Half Load – $350">Half Load – $350 (small items, minor cleanout)</option>
-                  <option value="Three-Quarter Load – $500">¾ Load – $500 (medium load, garage, furniture)</option>
-                  <option value="Full Load – $725">Full Load – $725 (large haul, estate cleanout)</option>
+                  <option value="Half Load – $400">Half Load – $400 (small items, minor cleanout)</option>
+                  <option value="Three-Quarter Load – $550">¾ Load – $550 (medium load, garage, furniture)</option>
+                  <option value="Full Load – $800">Full Load – $800 (large haul, estate cleanout)</option>
                   <option value="Not Sure">Not Sure – I need help deciding</option>
                 </select>
               </div>
